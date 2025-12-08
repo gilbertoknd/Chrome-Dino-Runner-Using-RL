@@ -1,1 +1,23 @@
-*.bat
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual Environment
+.venv/
+venv/
+env/
+
+# IDEs
+.vscode/
+.idea/
+
+# Project Specific
+logs/
+*.zip
+*.png
+score.txt
+
+# OS
+.DS_Store
+Thumbs.db

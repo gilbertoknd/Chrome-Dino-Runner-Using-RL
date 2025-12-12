@@ -21,3 +21,5 @@ score.txt
 # OS
 .DS_Store
 Thumbs.db
+best_validation_run.mp4
+results/validation_20251208_141052/best_run.mp4

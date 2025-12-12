@@ -8,7 +8,9 @@ from envs.dino_env import DinoEnv
 import pandas as pd
 import matplotlib.pyplot as plt
 
-def train(total_timesteps=10000):
+import config
+
+def train(total_timesteps=config.TOTAL_TIMESTEPS):
     log_dir = "logs/"
     os.makedirs(log_dir, exist_ok=True)
 
@@ -21,18 +23,19 @@ def train(total_timesteps=10000):
         env, 
         verbose=1, 
         tensorboard_log=log_dir,
-        learning_rate=1e-4,
-        buffer_size=50000,
-        learning_starts=1000,
-        batch_size=32,
+        learning_rate=config.LEARNING_RATE,
+        buffer_size=config.BUFFER_SIZE,
+        learning_starts=config.LEARNING_STARTS,
+        batch_size=config.BATCH_SIZE,
         #Epsilon Decay is controlled by exploration_fraction (duration) and exploration_final_eps (target)
         #Decay happens linearly from 1.0 to final_eps over the first (fraction * total_timesteps) steps.
-        exploration_fraction=0.1,  #10% of total_timesteps
-        exploration_final_eps=0.02,
+        exploration_fraction=config.EXPLORATION_FRACTION,
+        exploration_final_eps=config.EXPLORATION_FINAL_EPS,
 
-        target_update_interval=1000,
-        train_freq=4,
-        gradient_steps=1,
+        target_update_interval=config.TARGET_UPDATE_INTERVAL,
+        train_freq=config.TRAIN_FREQ,
+        gradient_steps=config.GRADIENT_STEPS,
+
     )
 
     print(f"Starting training for {total_timesteps} timesteps...")
@@ -92,4 +95,4 @@ def plot_results(log_dir):
     plt.close()
 
 if __name__ == "__main__":
-    train(total_timesteps=500000) 
+    train() #Uses default from config 

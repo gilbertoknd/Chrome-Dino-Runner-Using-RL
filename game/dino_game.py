@@ -186,6 +186,7 @@ class DinoGame:
     def __init__(self, headless=False):
         self.headless = headless
         
+        self.SCREEN = SCREEN
         self.clock = pygame.time.Clock()
         self.reset()
         

@@ -6,7 +6,7 @@ import time
 from game.dino_game import DinoGame
 
 class DinoEnv(gym.Env):
-    metadata = {"render_modes": ["human"], "render_fps": 60}
+    metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 30}
 
     def __init__(self, render_mode=None):
         super().__init__()
@@ -47,10 +47,15 @@ class DinoEnv(gym.Env):
 
     def render(self):
         self.game.render()
-        #Cap FPS if needed, but training usually wants max speed.
-        #Using clock in human mode
-        self.game.clock.tick(30) if hasattr(self.game, 'clock') else None 
-        pygame.display.update() 
+        if self.render_mode == "rgb_array":
+            return np.transpose(
+                np.array(pygame.surfarray.pixels3d(self.game.SCREEN)), axes=(1, 0, 2)
+            )
+        elif self.render_mode == "human":
+            # Cap FPS if needed, but training usually wants max speed.
+            # If human mode, we can sleep or use clock.
+            self.game.clock.tick(30) if hasattr(self.game, 'clock') else None 
+            pygame.display.update() 
 
     def close(self):
         self.game.close()

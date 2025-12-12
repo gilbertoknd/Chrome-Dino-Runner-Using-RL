@@ -2,6 +2,7 @@ import gymnasium as gym
 from stable_baselines3 import DQN
 from envs.dino_env import DinoEnv
 import config
+import plotting
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
@@ -81,34 +82,10 @@ def validate():
         imageio.mimsave(video_path, best_frames, fps=30)
         print("Video saved.")
 
+    
     #Plotting
     print("Generating validation plots...")
-    plot_validation_results(rewards, durations, results_dir)
-
-def plot_validation_results(rewards, durations, results_dir):
-    fig, axs = plt.subplots(2, 1, figsize=(10, 10))
-    
-    #Rewards
-    axs[0].plot(rewards, label='Episode Reward')
-    axs[0].axhline(y=np.mean(rewards), color='r', linestyle='--', label=f'Mean: {np.mean(rewards):.2f}')
-    axs[0].set_title('Validation: Episode Rewards')
-    axs[0].set_xlabel('Episode')
-    axs[0].set_ylabel('Reward')
-    axs[0].legend()
-    
-    #Durations
-    axs[1].plot(durations, label='Episode Duration')
-    axs[1].axhline(y=np.mean(durations), color='r', linestyle='--', label=f'Mean: {np.mean(durations):.2f}')
-    axs[1].set_title('Validation: Episode Duration (Steps)')
-    axs[1].set_xlabel('Episode')
-    axs[1].set_ylabel('Steps')
-    axs[1].legend()
-
-    plt.tight_layout()
-    output_file = os.path.join(results_dir, "validation_results.png")
-    plt.savefig(output_file)
-    print(f"Validation plots saved to {output_file}")
-    plt.close()
+    plotting.plot_validation_results(rewards, durations, results_dir)
 
 if __name__ == "__main__":
     validate()

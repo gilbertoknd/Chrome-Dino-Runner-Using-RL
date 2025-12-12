@@ -3,12 +3,25 @@ import argparse
 import gymnasium as gym
 from stable_baselines3 import DQN
 from stable_baselines3.common.monitor import Monitor
-from stable_baselines3.common.callbacks import CheckpointCallback
+from stable_baselines3.common.callbacks import CheckpointCallback, BaseCallback
 from envs.dino_env import DinoEnv
 import pandas as pd
 import matplotlib.pyplot as plt
-
 import config
+import plotting
+
+
+class LossCallback(BaseCallback):
+    def __init__(self, verbose=0):
+        super(LossCallback, self).__init__(verbose)
+        self.losses = []
+        self.timesteps = []
+
+    def _on_step(self) -> bool:
+        if 'train/loss' in self.logger.name_to_value:
+            self.losses.append(self.logger.name_to_value['train/loss'])
+            self.timesteps.append(self.num_timesteps)
+        return True
 
 def train(total_timesteps=config.TOTAL_TIMESTEPS):
     log_dir = "logs/"
@@ -39,60 +52,19 @@ def train(total_timesteps=config.TOTAL_TIMESTEPS):
     )
 
     print(f"Starting training for {total_timesteps} timesteps...")
-    model.learn(total_timesteps=total_timesteps, progress_bar=True)
+    loss_callback = LossCallback()
+    model.learn(total_timesteps=total_timesteps, progress_bar=True, callback=loss_callback)
+
+    # Save loss data
+    loss_df = pd.DataFrame({'step': loss_callback.timesteps, 'loss': loss_callback.losses})
+    loss_df.to_csv(os.path.join(log_dir, 'loss_log.csv'), index=False)
 
     model.save("dino_ddqn_model")
     print("Model saved.")
 
-    plot_results(log_dir)
+    plotting.plot_training_results(log_dir)
 
-def plot_results(log_dir):
-    results_path = os.path.join(log_dir, "monitor.csv")
-    if not os.path.exists(results_path):
-        print("No monitor.csv found. Skipping plotting.")
-        return
-
-    #Read the CSV, skipping the first line (metadata)
-    try:
-        df = pd.read_csv(results_path, skiprows=1)
-    except Exception as e:
-        print(f"Error reading monitor file: {e}")
-        return
-
-    #Create plots
-    fig, axs = plt.subplots(3, 1, figsize=(10, 15))
-
-    #Reward
-    window = 50
-    if len(df) > window:
-        rolling_mean = df['r'].rolling(window=window).mean()
-        axs[0].plot(df['r'], alpha=0.3, label='Reward')
-        axs[0].plot(rolling_mean, label=f'Rolling Mean ({window})')
-    else:
-        axs[0].plot(df['r'], label='Reward')
-    axs[0].set_title('Episode Rewards')
-    axs[0].set_xlabel('Episode')
-    axs[0].set_ylabel('Reward')
-    axs[0].legend()
-
-    #Duration (l = length)
-    axs[1].plot(df['l'])
-    axs[1].set_title('Episode Duration (Steps)')
-    axs[1].set_xlabel('Episode')
-    axs[1].set_ylabel('Steps')
-
-    #Time/Wall clock
-    axs[2].plot(df['t'] / 60, df['r']) #Time in minutes vs reward
-    axs[2].set_title('Reward over Time')
-    axs[2].set_xlabel('Time (min)')
-    axs[2].set_ylabel('Reward')
-
-    plt.tight_layout()
-    plt.savefig("training_results.png")
-    print("Plots saved to training_results.png")
-    plt.show(block=False) #Non-blocking show
-    plt.pause(3)
-    plt.close()
+    plotting.plot_training_results(log_dir)
 
 if __name__ == "__main__":
     train() #Uses default from config 
